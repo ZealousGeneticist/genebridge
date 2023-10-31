@@ -65,7 +65,7 @@ parser.add_argument("-e", "--header", required=False,
                     nargs='?', default=True, const=True,
                     help="header option for the final edge list\ncalled '-e' because '-h' is help\ndeafult=True")
 
-#outputHeader, Edge List (outfile3) Header Enable/Disable
+#chugReduction, Massive Timer Saver Enable/Disable
 parser.add_argument("-f", "--nochug", required=False,
                     nargs='?', default=True, const=True,
                     help="Removes group_betweenness_centrality community measurement, stopping massive chugging\ncalled '-f' because not many letters left\ndeafult=True")
