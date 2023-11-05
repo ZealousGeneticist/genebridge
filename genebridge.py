@@ -291,11 +291,16 @@ nx.set_node_attributes(G, chemSize,'size')
 
 
 ##Figure out the proper layout for the graph
-net = Network(width="1000px", height="700px", bgcolor='#222222', font_color='white',  select_menu=True, filter_menu=True)
+net = Network(width="1000px",  
+              height="700px", 
+              bgcolor='#222222', 
+              font_color='white',  
+              select_menu=True, 
+              filter_menu=True, 
+              cdn_resources='remote') #cdn_resources allow the html to be viewed remotely from the computer that made it!
 pos = nx.spring_layout(G,scale=5000)
 net.from_nx(G)
 
-print('Intial:',net.get_node('piperine'))
 #Turn off physics
 net.toggle_physics(False)
 for node in net.get_nodes():
@@ -304,9 +309,6 @@ for node in net.get_nodes():
     net.get_node(node)['physics']=False
     net.get_node(node)['label']=str(node) #set the node label so that it can be displayed
 
-print('After no physics:',net.get_node('piperine'))
-
 #write and save a file of the graph
 net.save_graph(name = "Pyvis_Graph.html")
-print('After save graph:',net.get_node('piperine'))
 print("Pyvis_Graph.html saved. That's the visualization and thats the end of the program/workflow.\nHave fun researching!")
