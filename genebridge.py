@@ -225,7 +225,7 @@ def cMetrics(c2n,chugReduction = True):
                     closeness = len(V_S) / closeness
                 except ZeroDivisionError:  # 1 / 0 assumed as 0
                     closeness = 0
-
+                return closeness
             c_c = gcc(G,nodes)
             if chugReduction == False:
                 #Group Betweeness Centrality #VERY COMPUTER HEAVY, AS IN USE A SUPER COMPUTER#
