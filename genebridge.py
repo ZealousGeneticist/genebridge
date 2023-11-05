@@ -283,7 +283,6 @@ for a in chemicalName.ChemicalName.to_list():
 #Setting Shape attribute to note Nodes that are the original chemicals to change shape for clarity
 chemsShape={chem: 'diamond' for chem in chemList}
 nx.set_node_attributes(G, chemsShape,'shape')
-
 #Setting Size attribute to note Nodes that are the original chemicals to change size for clarity
 chemSize={chem: 30 for chem in chemList}
 nx.set_node_attributes(G, chemSize,'size')
@@ -296,6 +295,7 @@ net = Network(width="1000px", height="700px", bgcolor='#222222', font_color='whi
 pos = nx.spring_layout(G,scale=5000)
 net.from_nx(G)
 
+print('Intial:',net.get_node('piperine'))
 #Turn off physics
 net.toggle_physics(False)
 for node in net.get_nodes():
@@ -304,6 +304,9 @@ for node in net.get_nodes():
     net.get_node(node)['physics']=False
     net.get_node(node)['label']=str(node) #set the node label so that it can be displayed
 
+print('After no physics:',net.get_node('piperine'))
+
 #write and save a file of the graph
 net.save_graph(name = "Pyvis_Graph.html")
+print('After save graph:',net.get_node('piperine'))
 print("Pyvis_Graph.html saved. That's the visualization and thats the end of the program/workflow.\nHave fun researching!")
