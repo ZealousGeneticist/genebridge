@@ -206,7 +206,27 @@ def cMetrics(c2n,chugReduction = True):
             d_c /= len(G.nodes()) - len(nodes)
 
             #Group Closeness Centrality
-            c_c = nx.group_closeness_centrality(G,nodes)
+            # c_c = nx.group_closeness_centrality(G,nodes) #Doesn't get recognized occasionally, so running the function myself.
+            def gcc(G,S,weight=None):
+                if G.is_directed():
+                    G = G.reverse()  # reverse view
+                closeness = 0  # initialize to 0
+                V = set(G)  # set of nodes in G
+                S = set(S)  # set of nodes in group S
+                V_S = V - S  # set of nodes in V but not S
+                shortest_path_lengths = nx.multi_source_dijkstra_path_length(G, S, weight=weight)
+                # accumulation
+                for v in V_S:
+                    try:
+                        closeness += shortest_path_lengths[v]
+                    except KeyError:  # no path exists
+                        closeness += 0
+                try:
+                    closeness = len(V_S) / closeness
+                except ZeroDivisionError:  # 1 / 0 assumed as 0
+                    closeness = 0
+
+            c_c = gcc(G,nodes)
             if chugReduction == False:
                 #Group Betweeness Centrality #VERY COMPUTER HEAVY, AS IN USE A SUPER COMPUTER#
                 b_c = nx.group_betweenness_centrality(G,nodes)
