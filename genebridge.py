@@ -18,7 +18,7 @@ def install(package): #Installing process for dependencies
         print(f"{package} has been installed.")
 
 #Import NetworkX the graphing library
-install("networkx")
+install("networkx==3.2")
 install("matplotlib")
 install("numpy")
 install("pandas")
