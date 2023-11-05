@@ -201,7 +201,10 @@ def cMetrics(c2n,chugReduction = True):
             for degree in tndc_dict.values():
                 count += int(degree)
             #Group Degree Centrality
-            d_c = nx.group_degree_centrality(G,nodes)
+            # d_c = nx.group_degree_centrality(G,nodes) #Doesn't get recognized occasionally, so running the function myself.
+            d_c = len(set().union(*[set(G.neighbors(i)) for i in nodes]) - set(nodes))
+            d_c /= len(G.nodes()) - len(nodes)
+
             #Group Closeness Centrality
             c_c = nx.group_closeness_centrality(G,nodes)
             if chugReduction == False:
