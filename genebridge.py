@@ -25,6 +25,7 @@ install("pandas")
 install("scipy")
 install("pyvis")
 install("str2bool")
+install("requests")
 print('\n')
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -33,7 +34,8 @@ import pandas as pd
 import scipy as sp
 from pyvis.network import Network
 from str2bool import str2bool
-import argparse, os, re
+import xml.etree.ElementTree as ET
+import argparse, os, re, requests, json, time
 
 ###USER DEFINED VARIABLES###
 ##################################
@@ -119,7 +121,7 @@ with open(fileName2, 'r') as tsvfile:
 
         #skipping adding communities with less than 3 nodes.
         if len(keys) < 3:
-            print('Community '+ value + ' was fewer than 3 nodes! Not added to graph nodes.')
+            print('Community '+ value + ' was fewer than 3 nodes! Not added to graph nodes or subcommunities.')
             continue
         # Create entries in the dictionary
         for key in keys:
@@ -265,9 +267,168 @@ print('commMetrics.tsv saved. Now onto finishing the graph visualization.')
 #Take the edge2comm.txt file, copy it to main folder and rename it 'Community Edge List'
 #At bottom or top, add MASTER community which accounts for all
 #Add second list accounting for Shortest paths between all input chemicals, transtivity, & other network wide metrics 
+###To add:
+#Add subgraphs for each community (excluding communities <3 nodes). You could do this with c2n_dict and edge2comm
+#If needed, put all sub graphs stuff in another folder
 ##
 
 
+#Use GeneLookUp API to take gene list and convert them into Entrez ID's which will work on toppfun
+def genelookup(z):
+    # URL and payload data
+    url = "https://toppgene.cchmc.org/API/lookup"
+    headers = {'Content-Type': 'text/json'}
+    data = {'Symbols': c2n_dict[z]} #add in values from z community in c2n_dict
+
+    # Convert payload data to JSON format
+    json_data = json.dumps(data)
+
+    # Make the POST request
+    post = requests.post(url, headers=headers, data=json_data) #the request
+    i = 0
+    p = 0
+    while i == 0:
+        if post.status_code == 500:
+            time.sleep(3)
+            print("Server issues, one second...")
+            p += 1
+            if p > 3:
+                print("Gene Look Up API server is having BIG ISSUES. Please try again later.")
+                break
+            post = requests.post(url, headers=headers, data=json_data) #repeat request
+            continue
+        break
+
+    # Parse the JSON data
+    info = json.loads(post.content)
+
+    # Extract integers from the "Entrez" field
+    entrez_values = [gene["Entrez"] for gene in info["Genes"]]    
+    return entrez_values
+
+#Define the program to easily request gene enrichment from genes and store them in a folder together
+def toppfun(z, folder_name='community', debug=False):
+    # URL and payload data
+    url = "https://toppgene.cchmc.org/API/enrich?as=xml"
+    headers = {'Content-Type': 'text/json'}
+    data = {'Genes': c3n_dict[z]} #add in values from z community in c2n_dict
+
+    # Convert payload data to JSON format
+    json_data = json.dumps(data)
+
+    # Make the POST request
+    post = requests.post(url, headers=headers, data=json_data) #the request
+    i = 0
+    p = 0
+    while i == 0:
+        if post.status_code == 500:
+            time.sleep(3)
+            print("ToppFun API server issues, one second...")
+            p += 1
+            if p > 3:
+                print("Server is having BIG ISSUES. Please try again later.")
+                break
+            post = requests.post(url, headers=headers, data=json_data) #repeat request
+            continue
+        break
+
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    # Specify the path to the file within the folder
+    file_name = 'community_'+z+'.xml'
+    file_path = os.path.join(folder_name, file_name)
+    #Save interaction data in outfile1
+    with open(file_path, 'wb') as b:
+        b.write(post.content)
+    #Set debug=True if making/editing code
+    if debug:
+        print(type(post))
+        print(f"{post.status_code}: {post.reason}")
+        # Print the post response
+        print(post.text)
+
+    return print("Annotations completed for subcommunity_"+z+'!')
+
+#Take dowloaded list and sort by [category] then [qValueFDR_BH]
+# Function to parse XML file into a pandas DataFrame and sort by specified columns
+def sort_xml_and_replace(xml_filename, sorted_xml_filename):
+    # Parse XML file into a DataFrame
+    tree = ET.parse(xml_filename)
+    root = tree.getroot()
+
+    data = []
+    for result in root.findall('.//result'):
+        row_data = {}
+        for field in result:
+            name = field.tag
+            value = field.text
+            row_data[name] = value
+        data.append(row_data)
+
+    df = pd.DataFrame(data)
+
+    # Sort DataFrame by specified columns
+    sort_columns = ['category', 'qValueFDR_BH']
+    df.sort_values(by=sort_columns, inplace=True)
+
+    # Save the sorted DataFrame back to XML
+    root.clear()
+    results_element = ET.SubElement(root, 'results')
+    for _, row in df.iterrows():
+        result_element = ET.SubElement(results_element, 'result')
+        for col in df.columns:
+            if col == 'genes':
+                # Handle the nested "genes" element separately
+                if row[col] is not None:
+                    genes_element = ET.SubElement(result_element, 'genes')
+                    for gene_field in row[col]:
+                        gene_sub_element = ET.SubElement(genes_element, gene_field)
+                        gene_sub_element.text = str(row[col][gene_field])
+            else:
+                # Handle other columns
+                field_element = ET.SubElement(result_element, col)
+                field_element.text = str(row[col])
+
+    tree.write(sorted_xml_filename)
+
+#For loop for toppfun'ing every subcommunity in A REVERSE data_dict
+#Dictionary for c2n
+c2n_dict = {}
+
+# Open the TSV file and read it line by line
+with open(fileName2, 'r') as tsvfile:
+    # Iterate through each line in the TSV file
+    for line in tsvfile:
+        # Split the line into columns using tab as the delimiter
+        columns = line.strip().split('\t')
+        
+        # The first column is used as the key
+        key = columns[0]
+        # The rest of the columns are used as values
+        values = columns[1:]
+
+        #skipping adding communities with less than 3 nodes.
+        if len(values) < 3:
+            print('Community '+ key + ' was fewer than 3 nodes! Not added to graph nodes or subcommunities.')
+            continue
+        # Create entries in the dictionary
+        c2n_dict[key] = values
+
+# Where the magic happens! And by that I mean gene enrichment for all subcommunities.
+c3n_dict = {}
+print('Begining ToppFun gene functional enrichment analysis...')
+for x in c2n_dict:
+    y = genelookup(x)
+    c3n_dict[x] = y
+    time.sleep(1)
+    toppfun(x)
+    time.sleep(1)
+    file_name = 'community_'+x+'.xml'
+    file_path = os.path.join('community', file_name)
+    sort_xml_and_replace(file_path,file_path)
+print('Transcriptome, ontology, phenotype, proteome, and pharmacome annotations for all subcommunities have been analysized and sorted!!!!')
 
 ##Dictionary for chemical labels
 #chemList for input chemicals
