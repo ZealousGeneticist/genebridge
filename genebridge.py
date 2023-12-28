@@ -267,9 +267,6 @@ print('commMetrics.tsv saved. Now onto finishing the graph visualization.')
 #Take the edge2comm.txt file, copy it to main folder and rename it 'Community Edge List'
 #At bottom or top, add MASTER community which accounts for all
 #Add second list accounting for Shortest paths between all input chemicals, transtivity, & other network wide metrics 
-###To add:
-#Add subgraphs for each community (excluding communities <3 nodes). You could do this with c2n_dict and edge2comm
-#If needed, put all sub graphs stuff in another folder
 ##
 
 
@@ -418,12 +415,13 @@ with open(fileName2, 'r') as tsvfile:
 
 # Where the magic happens! And by that I mean gene enrichment for all subcommunities.
 c3n_dict = {}
+output_folder = "community"
 print('Begining ToppFun gene functional enrichment analysis...')
 for x in c2n_dict:
     y = genelookup(x)
     c3n_dict[x] = y
     time.sleep(1)
-    toppfun(x)
+    toppfun(x, folder_name=output_folder)
     time.sleep(1)
     file_name = 'community_'+x+'.xml'
     file_path = os.path.join('community', file_name)
@@ -449,9 +447,39 @@ chemSize={chem: 30 for chem in chemList}
 nx.set_node_attributes(G, chemSize,'size')
 ##
 
+#Using graph G and c2n_dict, make another graph, use spring layout, and save in community folder.
+# Create and visualize subgraphs using Pyvis
+for community_id, n in c2n_dict.items():
+    subgraph = G.subgraph(n) #n is the nodes in the community
 
+    net = Network(width="1000px",  
+                  height="700px", 
+                  bgcolor='#222222', 
+                  font_color='white',  
+                  select_menu=True, 
+                  filter_menu=True, 
+                  cdn_resources='remote') #cdn_resources allow the html to be viewed remotely from the computer that made it!
+    pos = nx.spring_layout(subgraph, scale=2000)
+    net.from_nx(subgraph)
 
-##Figure out the proper layout for the graph
+    #Turn off physics
+    net.toggle_physics(False)
+    for node in net.get_nodes():
+        net.get_node(node)['x']=pos[node][0]
+        net.get_node(node)['y']=-pos[node][1] #the minus is needed here to respect networkx y-axis convention 
+        net.get_node(node)['physics']=False
+        net.get_node(node)['label']=str(node) #set the node label so that it can be displayed
+
+    # Write and save a file of the graph
+    # Specify the full path for the HTML file in the output folder
+    file_path = os.path.join(output_folder, f"Community_{community_id}_Subgraph.html")
+    
+    # Save the HTML file using save_graph
+    net.save_graph(file_path)    
+    print(f"Community_{community_id}_Subgraph.html saved.")
+##
+
+##Layout for the Main graph
 net = Network(width="1000px",  
               height="700px", 
               bgcolor='#222222', 
