@@ -318,7 +318,7 @@ def toppfun(z, folder_name='community', debug=False):
     i = 0
     p = 0
     while i == 0:
-        if post.status_code == 500:
+        if 500 <= post.status_code < 600:
             time.sleep(3)
             print("ToppFun API server issues, one second...")
             p += 1
