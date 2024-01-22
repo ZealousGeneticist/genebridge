@@ -6,26 +6,29 @@
 #Import librarys
 import subprocess
 import sys
-import pkg_resources
-def install(package): #Installing process for dependencies
-    try:
-        # Check if the package is already installed
-        pkg_resources.get_distribution(package)
-        print(f"{package} is already installed.")
-    except pkg_resources.DistributionNotFound:
-        # If the package is not installed, install it
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-        print(f"{package} has been installed.")
+# import pkg_resources
+# def install(package): #Installing process for dependencies
+#     try:
+#         # Check if the package is already installed
+#         pkg_resources.get_distribution(package)
+#         print(f"{package} is already installed.")
+#     except pkg_resources.DistributionNotFound:
+#         # If the package is not installed, install it
+#         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+#         print(f"{package} has been installed.")
 
-#Import NetworkX the graphing library
-install("networkx")
-install("matplotlib")
-install("numpy")
-install("pandas")
-install("scipy")
-install("pyvis")
-install("str2bool")
-install("requests")
+# #Import NetworkX the graphing library
+# install("networkx")
+# install("matplotlib")
+# install("numpy")
+# install("pandas")
+# install("scipy")
+# install("pyvis")
+# install("str2bool")
+# install("requests")
+
+#Install Requirements
+subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
 print('\n')
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -421,7 +424,7 @@ for x in c2n_dict:
     y = genelookup(x)
     c3n_dict[x] = y
     time.sleep(1)
-    toppfun(x, folder_name=output_folder)
+    toppfun(x, folder_name=output_folder) #Try
     time.sleep(1)
     file_name = 'community_'+x+'.xml'
     file_path = os.path.join('community', file_name)
