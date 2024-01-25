@@ -153,14 +153,38 @@ nM = pd.DataFrame()
 #really REALLY important addition of personality to the program :)
 print('\nNode Data chugging time.')
 
+NA_dict = {} #dictionary of nodes with NA as the value
+for x in data_dict:
+    NA_dict[x] = 'NA'
+
 #List and dictionaries for the Statistics
 N_L = list(G.nodes)
 N_D = dict(G.degree)
-B_C = nx.betweenness_centrality(G) #dictionary
-C_C = nx.closeness_centrality(G) #dictionary
-E_C = nx.eigenvector_centrality_numpy(G) #dictionary
-C_Co = nx.clustering(G) #dictionary
-P_R = nx.pagerank(G) #dictionary
+B_C = dict()
+C_C = dict()
+E_C = dict()
+C_Co= dict()
+P_R = dict()
+try: #All try's are for if the data is weird enough/small enough that it doesn't function properly.
+    B_C = nx.betweenness_centrality(G) #dictionary
+except:
+    B_C = NA_dict #dictionary of nodes with NA as the value
+try:
+    C_C = nx.closeness_centrality(G) #dictionary
+except:
+    C_C = NA_dict #dictionary of nodes with NA as the value
+try:
+    E_C = nx.eigenvector_centrality_numpy(G) #dictionary
+except:
+    E_C = NA_dict #dictionary of nodes with NA as the value
+try:
+    C_Co = nx.clustering(G) #dictionary
+except:
+    C_Co = NA_dict #dictionary of nodes with NA as the value
+try:
+    P_R = nx.pagerank(G) #dictionary
+except:
+    P_R = NA_dict #dictionary of nodes with NA as the value
 group = nx.get_node_attributes(G,'group') #dictionary
 
 #Adding Data into nM
@@ -232,7 +256,7 @@ def cMetrics(c2n,chugReduction = True):
                     closeness = 0
                 return closeness
             c_c = gcc(G,nodes)
-            if chugReduction == False:
+            if not chugReduction:
                 #Group Betweeness Centrality #VERY COMPUTER HEAVY, AS IN USE A SUPER COMPUTER#
                 b_c = nx.group_betweenness_centrality(G,nodes)
                 # Make a pandas dataframe for one group/community, then append that to the cM dataframe
@@ -424,11 +448,18 @@ for x in c2n_dict:
     y = genelookup(x)
     c3n_dict[x] = y
     time.sleep(1)
-    toppfun(x, folder_name=output_folder) #Try
+    try:
+        toppfun(x, folder_name=output_folder)
+    except:
+        print("ToppFun was unable to properly run gene analysis on subcommunity:", x) #Just in case it gets caught here.
     time.sleep(1)
     file_name = 'community_'+x+'.xml'
     file_path = os.path.join('community', file_name)
-    sort_xml_and_replace(file_path,file_path)
+    #This should only not work if ToppFun doesn't perform gene enrichment analysis.
+    try:
+        sort_xml_and_replace(file_path,file_path)
+    except:
+        print("ToppFun was unable to properly run gene analysis on subcommunity:",x, "\n This file cannot be made:",file_name)
 print('Transcriptome, ontology, phenotype, proteome, and pharmacome annotations for all subcommunities have been analysized and sorted!!!!')
 
 ##Dictionary for chemical labels
