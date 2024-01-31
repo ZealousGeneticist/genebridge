@@ -231,7 +231,11 @@ def cMetrics(c2n,chugReduction = True):
             #Group Degree Centrality
             # d_c = nx.group_degree_centrality(G,nodes) #Doesn't get recognized occasionally, so running the function myself.
             d_c = len(set().union(*[set(G.neighbors(i)) for i in nodes]) - set(nodes))
-            d_c /= len(G.nodes()) - len(nodes)
+            divisor = len(G.nodes()) - len(nodes)
+            if divisor is not 0:
+                d_c /= divisor
+            else: # 1 / 0 assumed as 0
+                d_c = 'NA'
 
             #Group Closeness Centrality
             # c_c = nx.group_closeness_centrality(G,nodes) #Doesn't get recognized occasionally, so running the function myself.
@@ -257,7 +261,10 @@ def cMetrics(c2n,chugReduction = True):
             c_c = gcc(G,nodes)
             if not chugReduction:
                 #Group Betweeness Centrality #VERY COMPUTER HEAVY, AS IN USE A SUPER COMPUTER#
-                b_c = nx.group_betweenness_centrality(G,nodes)
+                try:  
+                    b_c = nx.group_betweenness_centrality(G,nodes)
+                except ZeroDivisionError:
+                    b_c = 'NA'
                 # Make a pandas dataframe for one group/community, then append that to the cM dataframe
                 temp = pd.DataFrame({
                                     'Community': [group],              #(example: 1)
