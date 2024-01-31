@@ -477,7 +477,7 @@ for x in c2n_dict:
         else:
             print(f"{file_path_xml} not found to remove.")
     except:
-        print("ToppFun was unable to properly run gene analysis on subcommunity:",x, "\n This file cannot be made:",file_name)
+        print("ToppFun was unable to properly run gene analysis on subcommunity:",x, "\n This file cannot be made:",file_name_csv)
 print('Transcriptome, ontology, phenotype, proteome, and pharmacome annotations for all subcommunities have been analysized and sorted!!!!')
 
 ##Dictionary for chemical labels
