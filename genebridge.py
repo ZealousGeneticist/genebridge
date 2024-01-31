@@ -4,8 +4,7 @@
 
 ###Mapping and Master list Program###
 #Import librarys
-import subprocess
-import sys
+import subprocess, sys, argparse, os, re
 # import pkg_resources
 # def install(package): #Installing process for dependencies
 #     try:
@@ -38,7 +37,7 @@ import scipy as sp
 from pyvis.network import Network
 from str2bool import str2bool
 import xml.etree.ElementTree as ET
-import argparse, os, re, requests, json, time
+import requests, json, time
 
 ###USER DEFINED VARIABLES###
 ##################################
@@ -361,7 +360,7 @@ def toppfun(z, folder_name='community', debug=False):
         os.makedirs(folder_name)
 
     # Specify the path to the file within the folder
-    file_name = 'community_'+z+'.xml'
+    file_name = 'community_'+z+'_gene_enrichment.xml'
     file_path = os.path.join(folder_name, file_name)
     #Save interaction data in outfile1
     with open(file_path, 'wb') as b:
@@ -377,7 +376,7 @@ def toppfun(z, folder_name='community', debug=False):
 
 #Take dowloaded list and sort by [category] then [qValueFDR_BH]
 # Function to parse XML file into a pandas DataFrame and sort by specified columns
-def sort_xml_and_replace(xml_filename, sorted_xml_filename):
+def sort_xml_and_replace(xml_filename, csv_filename):
     # Parse XML file into a DataFrame
     tree = ET.parse(xml_filename)
     root = tree.getroot()
@@ -397,25 +396,29 @@ def sort_xml_and_replace(xml_filename, sorted_xml_filename):
     sort_columns = ['category', 'qValueFDR_BH']
     df.sort_values(by=sort_columns, inplace=True)
 
-    # Save the sorted DataFrame back to XML
-    root.clear()
-    results_element = ET.SubElement(root, 'results')
-    for _, row in df.iterrows():
-        result_element = ET.SubElement(results_element, 'result')
-        for col in df.columns:
-            if col == 'genes':
-                # Handle the nested "genes" element separately
-                if row[col] is not None:
-                    genes_element = ET.SubElement(result_element, 'genes')
-                    for gene_field in row[col]:
-                        gene_sub_element = ET.SubElement(genes_element, gene_field)
-                        gene_sub_element.text = str(row[col][gene_field])
-            else:
-                # Handle other columns
-                field_element = ET.SubElement(result_element, col)
-                field_element.text = str(row[col])
+    #This was to convert to xml, which nobody seems to use...
+    # # Save the sorted DataFrame back to XML
+    # root.clear()
+    # results_element = ET.SubElement(root, 'results')
+    # for _, row in df.iterrows():
+    #     result_element = ET.SubElement(results_element, 'result')
+    #     for col in df.columns:
+    #         if col == 'genes':
+    #             # Handle the nested "genes" element separately
+    #             if row[col] is not None:
+    #                 genes_element = ET.SubElement(result_element, 'genes')
+    #                 for gene_field in row[col]:
+    #                     gene_sub_element = ET.SubElement(genes_element, gene_field)
+    #                     gene_sub_element.text = str(row[col][gene_field])
+    #         else:
+    #             # Handle other columns
+    #             field_element = ET.SubElement(result_element, col)
+    #             field_element.text = str(row[col])
 
-    tree.write(sorted_xml_filename)
+    # tree.write(sorted_xml_filename)
+    
+    # Save the DataFrame as a CSV file
+    df.to_csv(csv_filename, index=False)
 
 #For loop for toppfun'ing every subcommunity in A REVERSE data_dict
 #Dictionary for c2n
@@ -442,7 +445,7 @@ with open(fileName2, 'r') as tsvfile:
 
 # Where the magic happens! And by that I mean gene enrichment for all subcommunities.
 c3n_dict = {}
-output_folder = "community"
+output_folder = 'toppfun&graphs'
 print('Begining ToppFun gene functional enrichment analysis...')
 for x in c2n_dict:
     y = genelookup(x)
@@ -453,11 +456,19 @@ for x in c2n_dict:
     except:
         print("ToppFun was unable to properly run gene analysis on subcommunity:", x) #Just in case it gets caught here.
     time.sleep(1)
-    file_name = 'community_'+x+'.xml'
-    file_path = os.path.join('community', file_name)
+    file_name_xml = 'community_'+x+'_gene_enrichment.xml'
+    file_name_csv = 'community_'+x+'_gene_enrichment.csv'
+    file_path_xml = os.path.join(output_folder, file_name_xml)
+    file_path_csv = os.path.join(output_folder, file_name_csv)
     #This should only not work if ToppFun doesn't perform gene enrichment analysis.
     try:
-        sort_xml_and_replace(file_path,file_path)
+        sort_xml_and_replace(file_path_xml,file_path_csv)
+        # Remove the XML file
+        if os.path.exists(file_path_xml):
+            os.remove(file_path_xml)
+            print(f"{file_path_xml} removed successfully.")
+        else:
+            print(f"{file_path_xml} not found to remove.")
     except:
         print("ToppFun was unable to properly run gene analysis on subcommunity:",x, "\n This file cannot be made:",file_name)
 print('Transcriptome, ontology, phenotype, proteome, and pharmacome annotations for all subcommunities have been analysized and sorted!!!!')
