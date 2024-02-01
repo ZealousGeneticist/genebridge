@@ -241,7 +241,7 @@ def cMetrics(c2n,chugReduction = True):
             # d_c = nx.group_degree_centrality(G,nodes) #Doesn't get recognized occasionally, so running the function myself.
             d_c = len(set().union(*[set(G.neighbors(i)) for i in nodes]) - set(nodes))
             divisor = len(G.nodes()) - len(nodes)
-            if divisor is not 0:
+            if divisor != 0:
                 d_c /= divisor
             else: # 1 / 0 assumed as 0
                 d_c = 'NA'
@@ -461,7 +461,7 @@ with open(fileName2, 'r') as tsvfile:
 
 # Where the magic happens! And by that I mean gene enrichment for all subcommunities.
 c3n_dict = {}
-output_folder = 'toppfun&graphs'
+output_folder = 'toppfunANDgraphs'
 print('Begining ToppFun gene functional enrichment analysis...')
 for x in c2n_dict:
     y = genelookup(x)
