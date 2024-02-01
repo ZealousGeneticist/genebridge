@@ -376,7 +376,7 @@ def toppfun(z, folder_name='community', debug=False):
         os.makedirs(folder_name)
 
     # Specify the path to the file within the folder
-    file_name = 'community_'+z+'_gene_enrichment.xml'
+    file_name = 'community'+z+'GeneEnrichment.xml'
     file_path = os.path.join(folder_name, file_name)
     #Save interaction data in outfile1
     with open(file_path, 'wb') as b:
@@ -472,8 +472,8 @@ for x in c2n_dict:
     except:
         print("ToppFun was unable to properly run gene analysis on subcommunity:", x) #Just in case it gets caught here.
     time.sleep(1)
-    file_name_xml = 'community_'+x+'_gene_enrichment.xml'
-    file_name_csv = 'community_'+x+'_gene_enrichment.csv'
+    file_name_xml = 'community'+x+'GeneEnrichment.xml'
+    file_name_csv = 'community'+x+'GeneEnrichment.csv'
     file_path_xml = os.path.join(output_folder, file_name_xml)
     file_path_csv = os.path.join(output_folder, file_name_csv)
     #This should only not work if ToppFun doesn't perform gene enrichment analysis.
@@ -533,11 +533,11 @@ for community_id, n in c2n_dict.items():
 
     # Write and save a file of the graph
     # Specify the full path for the HTML file in the output folder
-    file_path = os.path.join(output_folder, f"Community_{community_id}_Subgraph.html")
+    file_path = os.path.join(output_folder, f"community{community_id}Subgraph.html")
     
     # Save the HTML file using save_graph
     net.save_graph(file_path)    
-    print(f"Community_{community_id}_Subgraph.html saved.")
+    print(f"community{community_id}Subgraph.html saved.")
 ##
 
 ##Layout for the Main graph
