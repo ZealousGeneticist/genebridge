@@ -23,21 +23,7 @@ import subprocess, sys, argparse, os, re
 # install("pandas")
 # install("scipy")
 # install("pyvis")
-# install("str2bool")
 # install("requests")
-
-#Install Requirements
-subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-print('\n')
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import scipy as sp
-from pyvis.network import Network
-from str2bool import str2bool
-import xml.etree.ElementTree as ET
-import requests, json, time
 
 ###USER DEFINED VARIABLES###
 ##################################
@@ -66,13 +52,18 @@ parser.add_argument("-g", "--organism", required=False,
 
 #outputHeader, Edge List (outfile3) Header Enable/Disable
 parser.add_argument("-e", "--header", required=False,
-                    nargs='?', default=True, const=True,
+                    action='store_false', default=True, # on/off flag
                     help="header option for the final edge list\ncalled '-e' because '-h' is help\ndeafult=True")
 
 #chugReduction, Massive Timer Saver Enable/Disable
 parser.add_argument("-f", "--nochug", required=False,
-                    nargs='?', default=True, const=True,
+                    action='store_false', default=True, # on/off flag
                     help="Removes group_betweenness_centrality community measurement, stopping massive chugging\ncalled '-f' because not many letters left\ndeafult=True")
+
+#noinstall, Disables installation of required packages
+parser.add_argument("-z","--noinstall", required=False, 
+                    action='store_true', default=False, # on/off flag
+                    help='disables installation of required packages in requirements.txt\ndefault=False')
 
 args = parser.parse_args()
 ##################################
@@ -82,8 +73,26 @@ fileName = args.e2c
 fileName2 = args.c2n
 outfile1 = args.ctd #ChemicalGene Interaction Table, but more importantly, list of input chemicals
 organism= args.organism #Define Taxonomy ID
-outputHeader = str2bool(str(args.header)) #Toggle for having headers in the final node library
-chugReduction = str2bool(str(args.nochug))
+outputHeader = args.header #Toggle for having headers in the final node library
+chugReduction = args.nochug
+noinstall = args.z # Toggle for machines like super computers that don't give permission for the folder holding python to have packages installed by the user
+
+#Package Installation (cont.)
+#Install Requirements.txt
+if not noinstall:
+    subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+else:
+    print("Argument --noinstall was utilized. \nThe program will work only if you have already installed the packages in requirement.txt already manually.")
+print('\n')
+import networkx as nx
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scipy as sp
+from pyvis.network import Network
+import xml.etree.ElementTree as ET
+import requests, json, time
+
 ###USER DEFINED FUNCTIONS###
 def findFile(x):
     directory_path = "."

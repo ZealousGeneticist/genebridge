@@ -35,7 +35,6 @@ scipy<=1.12.0
 setuptools<=68.2.2
 six<=1.16.0
 stack-data<=0.6.3
-str2bool<=1.1
 traitlets<=5.14.1
 tzdata<=2023.4
 urllib3<=2.1.0
