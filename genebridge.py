@@ -75,7 +75,7 @@ outfile1 = args.ctd #ChemicalGene Interaction Table, but more importantly, list 
 organism= args.organism #Define Taxonomy ID
 outputHeader = args.header #Toggle for having headers in the final node library
 chugReduction = args.nochug
-noinstall = args.z # Toggle for machines like super computers that don't give permission for the folder holding python to have packages installed by the user
+noinstall = args.noinstall # Toggle for machines like super computers that don't give permission for the folder holding python to have packages installed by the user
 
 #Package Installation (cont.)
 #Install Requirements.txt
